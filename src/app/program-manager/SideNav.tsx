@@ -14,7 +14,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggler from "@/components/Navbar/ThemeToggler";
-import { Admin, College, SideNavItem } from "@/Types";
+import { Program, SideNavItem } from "@/Types";
 
 const SideNav = ({
   children,
@@ -24,7 +24,7 @@ const SideNav = ({
   className?: string;
 }) => {
   const router = useRouter();
-  const { user } = useAuth() as { user: College };
+  const { user } = useAuth() as { user: Program };
   const handleLogout = async () => {
     toast.promise(axios.get("/api/auth/logout"), {
       loading: "Logging out...",
@@ -69,7 +69,7 @@ const SideNav = ({
 
             <div className="navbar lg:hidden px-2">
               <Link
-                href={`/college/dashboard`}
+                href={`/program-manager/dashboard`}
                 className="navbar-start text-xl font-bold flex items-center"
               >
                 <span className="h-7 w-7 ">
@@ -86,7 +86,7 @@ const SideNav = ({
                 <ThemeToggler />
                 <div className="dropdown dropdown-left cursor-pointer bg-transparent">
                   <Image
-                    src={user.profileImage!}
+                    src={user.coverImage!}
                     alt="Avatar"
                     className="rounded-full"
                     width={40}
@@ -101,20 +101,20 @@ const SideNav = ({
                     {/* User Initial */}
                     <div className="flex items-center justify-center mb-2">
                       <div className="flex items-center justify-center w-12 h-12 bg-primary text-base-conten rounded-full text-xl font-bold">
-                        {user?.name[0].toUpperCase()}
+                        {user?.title[0].toUpperCase()}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-center">
                       <span className="text-lg font-semibold text-base-content">
-                        {user.name}
+                        {user.title}
                       </span>
                     </div>
                     <hr className="my-2 border-base-content" />
                     <div className="flex flex-col">
                       <Link
                         className="text-left px-4 py-2 text-base-content hover:bg-base-200 transition duration-200"
-                        href={`/college/settings`}
+                        href={`/program-manager/settings`}
                       >
                         My Account
                       </Link>
@@ -135,7 +135,7 @@ const SideNav = ({
                 <ThemeToggler />
                 <div className="dropdown dropdown-left cursor-pointer bg-transparent">
                   <Image
-                    src={user.profileImage!}
+                    src={user.coverImage!}
                     alt="Avatar"
                     className="rounded-full"
                     width={40}
@@ -150,20 +150,20 @@ const SideNav = ({
                     {/* User Initial */}
                     <div className="flex items-center justify-center mb-2">
                       <div className="flex items-center justify-center w-12 h-12 bg-primary text-base-conten rounded-full text-xl font-bold">
-                        {user.name[0].toUpperCase()}
+                        {user.title[0].toUpperCase()}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-center">
                       <span className="text-lg font-semibold text-base-content">
-                        {user.name}
+                        {user.title}
                       </span>
                     </div>
                     <hr className="my-2 border-base-content" />
                     <div className="flex flex-col">
                       <Link
                         className="text-left px-4 py-2 text-base-content hover:bg-base-200 transition duration-200"
-                        href={`/${user.role}/settings`}
+                        href={`/program-manager/settings`}
                       >
                         My Account
                       </Link>
@@ -196,7 +196,7 @@ const SideNav = ({
           ></label>
           <div className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
             <Link
-              href={`/college/dashboard`}
+              href={`/program-manager/dashboard`}
               className="flex h-16 w-full flex-row items-center justify-center space-x-3 border-b border-base-content md:justify-start md:px-6"
             >
               <span className="h-7 w-7 rounded-lg bg-base-200">

@@ -7,7 +7,7 @@ const StudentSchema = new mongoose.Schema(
     phone: { type: String, index: true },
     password: { type: String },
     profileImage: { type: String },
-    roles: {
+    role: {
       type: String,
       default: "student",
     },
@@ -16,7 +16,6 @@ const StudentSchema = new mongoose.Schema(
       ref: "College",
       index: true,
     },
-    enrollmentId: { type: String, index: true },
     profile: {
       bio: String,
       skills: [String], // for recommendations

@@ -1,6 +1,7 @@
 import dbConfig from "@/config/db.config";
 import College from "@/models/College";
 import Event from "@/models/Event";
+import Program from "@/models/Program";
 import Student from "@/models/Student";
 import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,6 +43,14 @@ export async function GET(req: NextRequest) {
           return NextResponse.json({ error: "Organizer not found" });
         }
         return NextResponse.json({ user: event, status: 200 });
+      case "program-manager":
+        const programManager = await Program.findById(data.id).select(
+          "-password"
+        );
+        if (!programManager) {
+          return NextResponse.json({ error: "Program Manager not found" });
+        }
+        return NextResponse.json({ user: programManager, status: 200 });
       default:
         return NextResponse.json({ error: "Invalid role" });
     }

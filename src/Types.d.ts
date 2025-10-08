@@ -54,7 +54,7 @@ export interface Event {
 
 export interface Program {
   _id?: string;
-  event: Event | string;
+  event: Event;
   coverImage?: string;
   manager: {
     name: string;
@@ -95,6 +95,11 @@ export interface Program {
   prizes?: { title?: string; amount?: number }[];
   registrationStart?: Date;
   registrationEnd?: Date;
+  totalParticipants?: number;
+  totalRegistrations?: number;
+  totalTeams?: number;
+  totalSubmissions?: number;
+  totalWinners?: number;
   submissionDeadline?: Date;
   judgingCriteria?: string;
   winnersAnnouncedOn?: Date;
@@ -106,13 +111,13 @@ export interface Program {
 
 export interface Student {
   _id?: string;
-  name?: string;
+  name: string;
   email?: string;
   phone?: string;
   password?: string;
   role?: "student";
   college?: College | string;
-  enrollmentId?: string;
+  profileImage?: string;
   profile?: {
     bio?: string;
     skills?: string[];

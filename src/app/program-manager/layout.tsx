@@ -1,17 +1,29 @@
+"use client";
+import axios from "axios";
 import Navbar from "@/components/Navbar";
 import "../globals.css";
 import { Toaster } from "react-hot-toast";
-import Footer from "@/components/Footer";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import SideNav from "./SideNav";
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const Component = ({ children }: { children: React.ReactNode }) => {
+  const { setUser } = useAuth();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await axios.get("/api/auth/verifytoken");
+      if (response.data) {
+        setUser(response.data.user);
+      }
+    };
+    fetchUser();
+  }, []);
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html lang="en">
       <head>
-        <title>Opportune | One Platform. Infinite Opportunities</title>
+        <title>
+          Program Manager | Opportune | One Platform. Infinite Opportunities
+        </title>
         <meta
           name="description"
           content="Eventure is a next-generation web platform designed for students, clubs, and colleges to connect through events, competitions, and hackathons. It empowers students to discover opportunities, register for individual or team-based events, form cross-college collaborations, upload submissions, and track results — all in one place. With gamification, leaderboards, personalized recommendations, and real-time analytics, Eventure transforms the way students engage in academic and extracurricular activities. 
@@ -29,12 +41,24 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`antialiased`}>
-        <Toaster />
-        <Navbar />
-        {children}
-        <Footer />
+      <body className={`antialiased Orbitron`}>
+        <div className="absolute top-0 left-0 right-0 z-50">
+          <Toaster />
+        </div>
+        <SideNav className="poppins">{children}</SideNav>
       </body>
     </html>
+  );
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <AuthProvider>
+      <Component>{children}</Component>
+    </AuthProvider>
   );
 }

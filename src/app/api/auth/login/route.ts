@@ -5,6 +5,7 @@ import dbConfig from "@/config/db.config";
 import Student from "@/models/Student";
 import College from "@/models/College";
 import Event from "@/models/Event";
+import Program from "@/models/Program";
 
 dbConfig();
 
@@ -137,6 +138,66 @@ export async function POST(req: NextRequest) {
         };
         return createTokenAndResponse(data, "/organizer/dashboard");
       }
+      case "program manager": {
+        const program = await Program.findOne({ "manager.email": email });
+        if (!program) {
+          return NextResponse.json(
+            { message: "Program not found. Please register first." },
+            { status: 404 }
+          );
+        }
+        const isPasswordValid = await bcrypt.compare(
+          password,
+          program.manager.password
+        );
+        if (!isPasswordValid) {
+          return NextResponse.json(
+            { message: "Invalid password. Please try again." },
+            { status: 401 }
+          );
+        }
+        data = {
+          id: program._id,
+          email: program.manager.email,
+          role: "program-manager",
+          name: program.manager.name,
+          profileImage: program.coverImage,
+          isVerified: true,
+        };
+        return createTokenAndResponse(data, "/program-manager/dashboard");
+      }
+      case "student":
+        const student = await Student.findOne({ email });
+        if (!student) {
+          return NextResponse.json(
+            { message: "Student not found. Please register first." },
+            { status: 404 }
+          );
+        }
+        const isPasswordValid = await bcrypt.compare(
+          password,
+          student.password
+        );
+        if (!isPasswordValid) {
+          return NextResponse.json(
+            { message: "Invalid password. Please try again." },
+            { status: 401 }
+          );
+        }
+        data = {
+          id: student._id,
+          email: student.email,
+          role: "student",
+          name: student.name,
+          profileImage: student.profileImage,
+          isVerified: true,
+        };
+        return createTokenAndResponse(data, "/student/dashboard");
+      default:
+        return NextResponse.json(
+          { message: "Invalid role selected. Please try again." },
+          { status: 400 }
+        );
     }
   } catch (error) {
     console.error(error);

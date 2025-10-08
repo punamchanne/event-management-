@@ -14,7 +14,7 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggler from "@/components/Navbar/ThemeToggler";
-import { Admin, College, SideNavItem } from "@/Types";
+import { SideNavItem, Student } from "@/Types";
 
 const SideNav = ({
   children,
@@ -24,7 +24,7 @@ const SideNav = ({
   className?: string;
 }) => {
   const router = useRouter();
-  const { user } = useAuth() as { user: College };
+  const { user } = useAuth() as { user: Student };
   const handleLogout = async () => {
     toast.promise(axios.get("/api/auth/logout"), {
       loading: "Logging out...",
@@ -52,7 +52,7 @@ const SideNav = ({
                     <IconChevronRight />
                   </span>
                   <span className="text-base capitalize hover:text-primary transition">
-                    {segment.replace(/-/g, " ")}
+                    {decodeURIComponent(segment.replace(/-/g, " "))}
                   </span>
                 </React.Fragment>
               ))}
@@ -69,7 +69,7 @@ const SideNav = ({
 
             <div className="navbar lg:hidden px-2">
               <Link
-                href={`/college/dashboard`}
+                href={`/student/dashboard`}
                 className="navbar-start text-xl font-bold flex items-center"
               >
                 <span className="h-7 w-7 ">
@@ -114,7 +114,7 @@ const SideNav = ({
                     <div className="flex flex-col">
                       <Link
                         className="text-left px-4 py-2 text-base-content hover:bg-base-200 transition duration-200"
-                        href={`/college/settings`}
+                        href={`/student/settings`}
                       >
                         My Account
                       </Link>
@@ -163,7 +163,7 @@ const SideNav = ({
                     <div className="flex flex-col">
                       <Link
                         className="text-left px-4 py-2 text-base-content hover:bg-base-200 transition duration-200"
-                        href={`/${user.role}/settings`}
+                        href={`/program-manager/settings`}
                       >
                         My Account
                       </Link>
@@ -196,7 +196,7 @@ const SideNav = ({
           ></label>
           <div className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
             <Link
-              href={`/college/dashboard`}
+              href={`/program-manager/dashboard`}
               className="flex h-16 w-full flex-row items-center justify-center space-x-3 border-b border-base-content md:justify-start md:px-6"
             >
               <span className="h-7 w-7 rounded-lg bg-base-200">

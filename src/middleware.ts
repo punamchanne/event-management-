@@ -75,8 +75,8 @@ export const config = {
     "/",
     "/admin/:path*",
     "/college/:path*",
-    "/program/:path*",
-    "/certificate-officer/:path*",
-    "/user/:path*",
+    "/student/:path*",
+    "/organizer/:path*",
+    "/program-manager/:path*",
   ],
 };

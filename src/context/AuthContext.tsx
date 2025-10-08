@@ -1,17 +1,17 @@
-import { Admin, College, Event, Student } from "@/Types";
+import { Admin, College, Event, Program, Student } from "@/Types";
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface AuthContextType {
-  user: Student | Admin | College | Event | null;
-  setUser: (user: Student | Admin | College | Event | null) => void;
+  user: Student | Admin | College | Event | Program | null;
+  setUser: (user: Student | Admin | College | Event | Program | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<Student | Admin | College | Event | null>(
-    null
-  );
+  const [user, setUser] = useState<
+    Student | Admin | College | Event | Program | null
+  >(null);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>

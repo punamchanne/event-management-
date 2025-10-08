@@ -25,6 +25,8 @@ export async function POST(req: NextRequest) {
     const newProgram = new Program(program);
     newProgram.event = event._id;
     await newProgram.save();
+    event.programsCount = (event.programsCount || 0) + 1;
+    await event.save();
     return NextResponse.json(
       { message: "Program added successfully", program: newProgram },
       { status: 201 }
