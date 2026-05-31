@@ -101,7 +101,7 @@ const SideNav = ({
                     {/* User Initial */}
                     <div className="flex items-center justify-center mb-2">
                       <div className="flex items-center justify-center w-12 h-12 bg-primary text-base-conten rounded-full text-xl font-bold">
-                        {user?.name[0].toUpperCase()}
+                        {user?.name ? user.name[0].toUpperCase() : ""}
                       </div>
                     </div>
 
@@ -150,7 +150,7 @@ const SideNav = ({
                     {/* User Initial */}
                     <div className="flex items-center justify-center mb-2">
                       <div className="flex items-center justify-center w-12 h-12 bg-primary text-base-conten rounded-full text-xl font-bold">
-                        {user.name[0].toUpperCase()}
+                        {user?.name ? user.name[0].toUpperCase() : ""}
                       </div>
                     </div>
 

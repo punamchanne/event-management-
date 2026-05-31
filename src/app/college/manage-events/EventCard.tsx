@@ -1,8 +1,17 @@
 import { Event } from "@/Types";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
-export default function EventCard({ event }: { event: Event }) {
+export default function EventCard({
+  event,
+  onEdit,
+  onDelete,
+}: {
+  event: Event;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const handleStatusChange = (newStatus: string) => {
     try {
       const res = axios.post("/api/events/update-event-status", {
@@ -121,9 +130,11 @@ export default function EventCard({ event }: { event: Event }) {
 
         {/* Actions */}
         <div className="card-actions mt-4 space-x-2">
-          <button className="btn btn-primary btn-sm">View Details</button>
-          <button className="btn btn-secondary btn-sm">Edit</button>
-          <button className="btn btn-error btn-sm">Cancel Event</button>
+          <Link href={`/student/ongoing-events/${event.slug}`} className="btn btn-primary btn-sm">
+            View Details
+          </Link>
+          <button onClick={onEdit} className="btn btn-secondary btn-sm">Edit</button>
+          <button onClick={onDelete} className="btn btn-error btn-sm">Cancel Event</button>
         </div>
       </div>
     </div>

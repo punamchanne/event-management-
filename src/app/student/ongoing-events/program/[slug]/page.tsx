@@ -39,6 +39,7 @@ export default function ProgramReadMorePage() {
   const [teamName, setTeamName] = useState("");
   const [teamCode, setTeamCode] = useState("");
   const [teamPassword, setTeamPassword] = useState("");
+  const [teammateEmails, setTeammateEmails] = useState<string[]>([]);
   const [createdTeam, setCreatedTeam] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -128,6 +129,7 @@ export default function ProgramReadMorePage() {
                 teamName,
                 teamCode,
                 teamPassword,
+                teammateEmails: teammateEmails.filter(email => email.trim() !== ""),
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
@@ -177,7 +179,8 @@ export default function ProgramReadMorePage() {
         programId: program._id,
         teamName,
         teamCode,
-        teamPassword
+        teamPassword,
+        teammateEmails: teammateEmails.filter(email => email.trim() !== "")
       };
 
       const res = await axios.post("/api/programs/participate", payload);
@@ -499,7 +502,7 @@ export default function ProgramReadMorePage() {
 
             {/* ACTION 3: CREATE TEAM FORM */}
             {modalAction === "create" && (
-              <div className="space-y-4 py-2">
+              <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto pr-2">
                 <h3 className="text-xl font-bold font-outfit">Create New Team</h3>
                 <fieldset className="fieldset">
                   <legend className="fieldset-legend">Team Name <span className="text-error">*</span></legend>
@@ -511,7 +514,33 @@ export default function ProgramReadMorePage() {
                     className="input input-bordered w-full rounded-xl text-sm"
                   />
                 </fieldset>
-                <div className="flex justify-end gap-2 pt-4">
+
+                {program.teamSize && program.teamSize.max && program.teamSize.max > 1 && (
+                  <div className="space-y-3 mt-4 border-t pt-4">
+                    <h4 className="text-sm font-bold font-outfit text-base-content/80">Add Teammate Emails (Optional)</h4>
+                    <p className="text-[10px] text-base-content/50 leading-relaxed">
+                      You can add your teammates directly by entering their registered emails here. Teammates must already have registered an account on Opportune.
+                    </p>
+                    {Array.from({ length: (program.teamSize.max || 1) - 1 }).map((_, idx) => (
+                      <fieldset key={idx} className="fieldset my-1">
+                        <legend className="fieldset-legend">Teammate {idx + 2} Email</legend>
+                        <input
+                          type="email"
+                          placeholder={`Enter teammate ${idx + 2} email`}
+                          value={teammateEmails[idx] || ""}
+                          onChange={(e) => {
+                            const newEmails = [...teammateEmails];
+                            newEmails[idx] = e.target.value;
+                            setTeammateEmails(newEmails);
+                          }}
+                          className="input input-bordered w-full rounded-xl text-sm"
+                        />
+                      </fieldset>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-4 border-t mt-4">
                   <button onClick={() => setModalAction("select")} className="btn btn-outline btn-sm rounded-xl">Back</button>
                   <button 
                     disabled={submitting}

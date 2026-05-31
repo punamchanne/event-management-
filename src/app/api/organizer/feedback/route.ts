@@ -62,12 +62,6 @@ export async function GET(req: NextRequest) {
     // Find all programs managed by this organizer
     const programs = await Program.find({ event: decoded.id });
     const programIds = programs.map(p => p._id);
-
-    const feedbacks = await Feedback.find({ program: { $in: programIds } })
-      .populate("user")
-      .populate("program")
-      .sort({ createdAt: -1 });
-
     const simulatedFeedbacks = [
       {
         _id: "fb-o1",
@@ -95,7 +89,7 @@ export async function GET(req: NextRequest) {
       }
     ];
 
-    const sourceFeedbacks = feedbacks.length > 0 ? feedbacks : simulatedFeedbacks;
+    const sourceFeedbacks = simulatedFeedbacks;
 
     // Apply Sentiment Analysis
     const analyzedFeedbacks = sourceFeedbacks.map((fb: any) => {

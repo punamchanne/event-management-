@@ -25,6 +25,8 @@ import {
   IconBarcode
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
+import { Student } from "@/Types";
 
 interface Teammate {
   _id: string;
@@ -63,11 +65,48 @@ interface Registration {
 }
 
 export default function RegisteredEventsPage() {
+  const authContext = useAuth();
+  const studentUser = authContext?.user as Student | null;
   const [loading, setLoading] = useState(true);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [filterType, setFilterType] = useState<"all" | "individual" | "team">("all");
   const [expandedRoster, setExpandedRoster] = useState<Record<string, boolean>>({});
   const [selectedTicket, setSelectedTicket] = useState<Registration | null>(null);
+
+  // Feedback states
+  const [feedbackProgram, setFeedbackProgram] = useState<{ id: string; title: string } | null>(null);
+  const [feedbackRating, setFeedbackRating] = useState<number>(5);
+  const [feedbackComments, setFeedbackComments] = useState<string>("");
+  const [submittingFeedback, setSubmittingFeedback] = useState<boolean>(false);
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackProgram) return;
+    if (!feedbackComments.trim()) {
+      toast.error("Please add some comments");
+      return;
+    }
+    setSubmittingFeedback(true);
+    try {
+      const res = await axios.post("/api/students/feedback", {
+        programId: feedbackProgram.id,
+        rating: feedbackRating,
+        comments: feedbackComments
+      });
+      if (res.data.success) {
+        toast.success("Feedback submitted successfully! Thank you.");
+        setFeedbackProgram(null);
+        setFeedbackRating(5);
+        setFeedbackComments("");
+      }
+    } catch (error: any) {
+      console.error("Error submitting feedback:", error);
+      const errMsg = error.response?.data?.message || "Failed to submit feedback";
+      toast.error(errMsg);
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   // Fetch registered programs from backend
   const fetchRegistrations = async () => {
@@ -289,7 +328,7 @@ export default function RegisteredEventsPage() {
                                         {isObj && member.profileImage ? (
                                           <Image src={member.profileImage} alt={member.name} fill className="object-cover" />
                                         ) : (
-                                          <span>{isObj ? member.name[0].toUpperCase() : "U"}</span>
+                                          <span>{isObj && member.name ? member.name[0].toUpperCase() : "U"}</span>
                                         )}
                                       </div>
                                       <div className="flex flex-col">
@@ -330,14 +369,20 @@ export default function RegisteredEventsPage() {
                     )}
                   </div>
                   
-                  {/* View Ticket Action button */}
-                  <div className="px-5 pt-1.5 no-print">
+                  {/* Action buttons grid */}
+                  <div className="px-5 pt-1.5 no-print grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setSelectedTicket(reg)}
                       className="btn btn-outline btn-primary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-primary hover:text-white font-outfit"
                     >
                       <IconTicket size={14} />
-                      View Entry Pass
+                      Pass
+                    </button>
+                    <button
+                      onClick={() => setFeedbackProgram({ id: reg.program?._id, title: reg.program?.title })}
+                      className="btn btn-outline btn-secondary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-secondary hover:text-white font-outfit"
+                    >
+                      ★ Feedback
                     </button>
                   </div>
                 </div>
@@ -393,7 +438,7 @@ export default function RegisteredEventsPage() {
                 </div>
                 <div>
                   <span className="text-[8px] font-extrabold text-base-content/40 uppercase block tracking-wider">TICKET HOLDER:</span>
-                  <span className="font-bold text-base-content block truncate">{typeof selectedTicket.leader === 'object' ? selectedTicket.leader.name : "Teammate"}</span>
+                  <span className="font-bold text-base-content block truncate">{studentUser?.name || (typeof selectedTicket.leader === 'object' ? selectedTicket.leader.name : "Teammate")}</span>
                 </div>
                 <div>
                   <span className="text-[8px] font-extrabold text-base-content/40 uppercase block tracking-wider">REGISTRATION DATE:</span>
@@ -498,22 +543,23 @@ export default function RegisteredEventsPage() {
                   visibility: visible !important;
                 }
                 .printable-ticket {
-                  position: absolute !important;
+                  position: fixed !important;
                   left: 50% !important;
-                  top: 40px !important;
-                  transform: translateX(-50%) !important;
-                  width: 100% !important;
+                  top: 50% !important;
+                  transform: translate(-50%, -50%) !important;
+                  width: 480px !important;
                   max-width: 480px !important;
                   border: 2px solid #000000 !important;
                   background: #ffffff !important;
                   color: #000000 !important;
                   box-shadow: none !important;
-                  border-radius: 16px !important;
-                  padding: 20px !important;
+                  border-radius: 20px !important;
+                  padding: 30px !important;
+                  margin: 0 !important;
                 }
                 .printable-ticket * {
                   color: #000000 !important;
-                  border-color: #cbd5e1 !important;
+                  border-color: #e2e8f0 !important;
                   background: transparent !important;
                 }
                 .printable-ticket .badge {
@@ -523,6 +569,101 @@ export default function RegisteredEventsPage() {
                 }
               }
             ` }} />
+          </div>
+        </div>
+      )}
+
+      {/* HIGH-FIDELITY FEEDBACK MODAL */}
+      {feedbackProgram && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto no-print">
+          <div className="bg-base-100 border border-secondary/40 rounded-3xl w-full max-w-md shadow-2xl p-6 relative animate-fadeIn poppins">
+            {/* Close Button */}
+            <button 
+              onClick={() => setFeedbackProgram(null)}
+              className="absolute top-4 right-4 btn btn-ghost btn-circle btn-sm text-base-content/60 hover:text-base-content hover:bg-base-200"
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div className="text-center space-y-2 pb-4 border-b border-base-content/10">
+              <span className="text-[9px] tracking-[0.25em] font-black text-secondary uppercase block font-outfit">CAMPUS EVALUATION</span>
+              <h3 className="text-lg font-black text-base-content font-outfit uppercase leading-tight line-clamp-2">
+                Feedback for {feedbackProgram.title}
+              </h3>
+              <p className="text-[10px] text-base-content/50 leading-relaxed max-w-xs mx-auto">
+                Your ratings and comments will be sent directly to the host college administration to help improve future events.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmitFeedback} className="space-y-5 pt-4">
+              {/* Star Rating */}
+              <div className="flex flex-col items-center justify-center gap-2">
+                <span className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider">Rate Your Experience</span>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFeedbackRating(star)}
+                      className={`text-2xl transition-all duration-200 transform hover:scale-125 ${
+                        star <= feedbackRating ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]" : "text-base-content/20"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[11px] font-semibold text-secondary capitalize font-outfit mt-1">
+                  {feedbackRating === 5 && "⭐ Excellent - Flawless event!"}
+                  {feedbackRating === 4 && "✨ Very Good - Highly enjoyed it"}
+                  {feedbackRating === 3 && "👌 Average - Good, but needs work"}
+                  {feedbackRating === 2 && "⚠️ Fair - Had several issues"}
+                  {feedbackRating === 1 && "👎 Poor - Unsatisfied experience"}
+                </span>
+              </div>
+
+              {/* Comments Textarea */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/60 uppercase tracking-wider block">
+                  Write Your Review / Comments
+                </label>
+                <textarea
+                  value={feedbackComments}
+                  onChange={(e) => setFeedbackComments(e.target.value)}
+                  placeholder="Tell us what you liked, issues you faced (e.g. Wi-Fi, time delays, food/water, judging fairness) etc."
+                  className="textarea textarea-bordered textarea-md w-full rounded-2xl text-xs h-28 focus:outline-none focus:border-secondary transition"
+                  maxLength={500}
+                  required
+                />
+                <span className="text-[9px] text-base-content/40 block text-right">
+                  {feedbackComments.length} / 500 characters
+                </span>
+              </div>
+
+              {/* Submit & Cancel Buttons */}
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setFeedbackProgram(null)}
+                  className="btn btn-outline btn-sm flex-1 rounded-xl text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingFeedback}
+                  className="btn btn-secondary btn-sm flex-1 rounded-xl text-xs text-white font-bold shadow-md hover:scale-[1.02] transition"
+                >
+                  {submittingFeedback ? (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  ) : (
+                    "Submit Review"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

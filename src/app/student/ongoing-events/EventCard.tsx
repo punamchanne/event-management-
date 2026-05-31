@@ -14,6 +14,15 @@ export default function EventCard({ event }: { event: Event }) {
           fill
           className="object-cover"
         />
+        {event.endDate && new Date(event.endDate) < new Date() ? (
+          <span className="absolute top-3 left-3 badge badge-error text-white font-bold text-[10px] uppercase py-2.5 px-3 shadow-lg z-10">
+            Registration Closed
+          </span>
+        ) : event.startDate && new Date(event.startDate) <= new Date() ? (
+          <span className="absolute top-3 left-3 badge badge-success text-white font-bold text-[10px] uppercase py-2.5 px-3 shadow-lg z-10">
+            Ongoing Fest
+          </span>
+        ) : null}
       </figure>
 
       {/* Card Body */}

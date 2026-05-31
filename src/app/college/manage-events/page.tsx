@@ -20,6 +20,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function ManageEventsPage() {
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState({
     title: "",
     slug: "",
@@ -166,7 +167,7 @@ export default function ManageEventsPage() {
       toast.error("Invalid email format");
       return false;
     }
-    if (!isEmailVerified) {
+    if (!editingEventId && !isEmailVerified) {
       toast.error("Please verify the Organizer Email first");
       return false;
     }
@@ -179,17 +180,21 @@ export default function ManageEventsPage() {
       toast.error("Invalid phone number format");
       return false;
     }
-    if (!newEvent.organizer.password) {
-      toast.error("Password is required");
-      return false;
-    }
-    if (newEvent.organizer.password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
-      return false;
-    }
-    if (newEvent.organizer.password !== newEvent.organizer.confirmPassword) {
-      toast.error("Passwords do not match");
-      return false;
+    
+    const isPasswordFilled = newEvent.organizer.password || newEvent.organizer.confirmPassword;
+    if (!editingEventId || isPasswordFilled) {
+      if (!newEvent.organizer.password) {
+        toast.error("Password is required");
+        return false;
+      }
+      if (newEvent.organizer.password.length < 6) {
+        toast.error("Password must be at least 6 characters long");
+        return false;
+      }
+      if (newEvent.organizer.password !== newEvent.organizer.confirmPassword) {
+        toast.error("Passwords do not match");
+        return false;
+      }
     }
     if (!newEvent.coverImage) {
       toast.error("Event Cover Image is required");
@@ -203,17 +208,88 @@ export default function ManageEventsPage() {
     try {
       setLoading(true);
       (document.getElementById("add-event-modal") as HTMLDialogElement).close();
-      const res = axios.post("/api/events/add-event", { event: newEvent });
+      const url = editingEventId ? "/api/events/edit-event" : "/api/events/add-event";
+      const res = editingEventId
+        ? axios.put(url, { event: { ...newEvent, _id: editingEventId } })
+        : axios.post(url, { event: newEvent });
       toast.promise(res, {
-        loading: "Adding Event...",
+        loading: editingEventId ? "Updating Event..." : "Adding Event...",
         success: (data: AxiosResponse) => {
           fetchEvents();
-          return "Event Added Successfully";
+          return editingEventId ? "Event Updated Successfully" : "Event Added Successfully";
         },
-        error: (err: unknown) => `This just happened: ${err}`,
+        error: (err: any) => err.response?.data?.message || `This just happened: ${err.message || err}`,
       });
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenEditModal = (event: Event) => {
+    setEditingEventId(event._id || null);
+    setIsEmailVerified(true);
+    setNewEvent({
+      title: event.title,
+      slug: event.slug || "",
+      description: event.description || "",
+      organizer: {
+        name: event.organizer?.name || "",
+        email: event.organizer?.email || "",
+        phone: event.organizer?.phone || "",
+        password: "",
+        confirmPassword: "",
+      },
+      startDate: new Date(event.startDate || new Date()),
+      endDate: new Date(event.endDate || new Date()),
+      status: event.status || "draft",
+      coverImage: event.coverImage || "",
+      tags: event.tags || [""],
+    });
+    (document.getElementById("add-event-modal") as HTMLDialogElement).showModal();
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingEventId(null);
+    setIsEmailVerified(false);
+    setNewEvent({
+      title: "",
+      slug: "",
+      description: "",
+      organizer: {
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+      },
+      startDate: new Date(),
+      endDate: new Date(),
+      status: "draft",
+      coverImage: "",
+      tags: [""],
+    });
+    (document.getElementById("add-event-modal") as HTMLDialogElement).showModal();
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to cancel/delete this event and all its associated programs?");
+    if (!confirmDelete) return;
+    try {
+      setLoading(true);
+      const res = axios.delete(`/api/events/delete-event?id=${eventId}`);
+      toast.promise(res, {
+        loading: "Cancelling Event...",
+        success: () => {
+          fetchEvents();
+          return "Event Cancelled Successfully";
+        },
+        error: (err: any) => err.response?.data?.message || "Failed to cancel event",
+      });
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -247,11 +323,7 @@ export default function ManageEventsPage() {
         </label>
         <button
           className="btn btn-primary"
-          onClick={() =>
-            (
-              document.getElementById("add-event-modal") as HTMLDialogElement
-            ).showModal()
-          }
+          onClick={handleOpenAddModal}
         >
           + Add Event
         </button>
@@ -263,7 +335,12 @@ export default function ManageEventsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
-            <EventCard key={event._id} event={event} />
+            <EventCard
+              key={event._id}
+              event={event}
+              onEdit={() => handleOpenEditModal(event)}
+              onDelete={() => handleDeleteEvent(event._id!)}
+            />
           ))}
         </div>
       )}
@@ -273,7 +350,7 @@ export default function ManageEventsPage() {
       >
         <div className="modal-box w-11/12 max-w-5xl bg-base-100 backdrop-blur-lg Orbitron">
           <h3 className="font-bold text-2xl text-primary text-center py-2">
-            Add New Event!!!
+            {editingEventId ? "Edit Event Details" : "Add New Event!!!"}
           </h3>
           <div className="px-10 py-5 mx-auto bg-base-200 rounded-lg">
             <h1 className="border-b text-lg font-bold mb-4">Event Details</h1>

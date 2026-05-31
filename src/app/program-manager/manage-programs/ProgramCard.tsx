@@ -1,11 +1,32 @@
 import { Program } from "@/Types";
 import toast from "react-hot-toast";
+import Link from "next/link";
+import axios from "axios";
 
-export default function ProgramCard({ program }: { program: Program }) {
-  // Dummy handler for status change
-  const handleStatusChange = (newStatus: string) => {
-    toast.success(`Status changed to ${newStatus}`);
-    // You can implement your actual update logic here (e.g. axios.post to backend)
+export default function ProgramCard({
+  program,
+  onEdit,
+  onDelete,
+}: {
+  program: Program;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const res = axios.post("/api/programs/update-program-status", {
+        programId: program._id,
+        status: newStatus,
+      });
+      toast.promise(res, {
+        loading: "Updating status...",
+        success: "Program status updated successfully.",
+        error: "Error updating program status.",
+      });
+    } catch (error) {
+      console.log("Error updating program status:", error);
+      toast.error("Failed to update program status.");
+    }
   };
 
   return (
@@ -93,9 +114,11 @@ export default function ProgramCard({ program }: { program: Program }) {
 
         {/* Actions */}
         <div className="card-actions mt-4 space-x-2">
-          <button className="btn btn-primary btn-sm">View Details</button>
-          <button className="btn btn-secondary btn-sm">Edit</button>
-          <button className="btn btn-error btn-sm">Cancel</button>
+          <Link href={`/student/ongoing-events/program/${program.slug}`} className="btn btn-primary btn-sm">
+            View Details
+          </Link>
+          <button onClick={onEdit} className="btn btn-secondary btn-sm">Edit</button>
+          <button onClick={onDelete} className="btn btn-error btn-sm">Cancel</button>
         </div>
       </div>
     </div>

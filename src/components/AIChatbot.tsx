@@ -62,22 +62,17 @@ export default function AIChatbot() {
     setInput("");
     setIsTyping(true);
 
-    // Simulate smart Bot Response with local NLP in pure English
-    setTimeout(() => {
-      let botResponse = "";
-      const lower = textToSend.toLowerCase();
+    try {
+      const response = await fetch("/api/helper/chatbot", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: textToSend })
+      });
 
-      if (lower.includes("register") || lower.includes("participate") || lower.includes("join") || lower.includes("how to")) {
-        botResponse = "📝 **How to Register for Fests:**\n1. Go to the **'Explore Events'** tab to browse ongoing programs.\n2. Click on the program you are interested in (e.g. Hackathon 2025).\n3. Click on the **'Participate Now'** button.\n4. Select your preferred participation option: Individual or Team registration.";
-      } else if (lower.includes("team") || lower.includes("collab") || lower.includes("code") || lower.includes("password") || lower.includes("member")) {
-        botResponse = "👥 **Team Collaboration & Roster:**\n* **To Create a Team:** Select 'Create a Team' and enter your team name. Copy the generated **Team Code** and **Password** to share with your friends.\n* **To Join a Team:** Select 'Join a Team' and enter the Team Code and Password provided by your teammate.\n* **Teammate Roster:** Go to your **Registered Events** page and expand the 'Team Roster' section on any team event to view teammate contact details, email, phone, and role in real-time!";
-      } else if (lower.includes("recommend") || lower.includes("suggest") || lower.includes("interest") || lower.includes("match")) {
-        botResponse = "✨ **AI Event Recommendations:**\n* We automatically evaluate the skills (e.g. React, Next.js, Figma) and interests listed on your profile and match them against published fests.\n* Visit your **Student Dashboard** to see your personalized **'AI Recommended Opportunities'** card carousel with custom Match Percentages!\n* Keep your Profile tags updated to get the most accurate matches!";
-      } else if (lower.includes("feature") || lower.includes("about") || lower.includes("what is") || lower.includes("opportune")) {
-        botResponse = "🚀 **Opportune Key Features:**\n1. **Cross-College Fests:** Access and compete in events hosted globally across campuses on a single portal.\n2. **Teammates Collaboration:** Joint roster sharing, circular credentialing, and teammate contacts.\n3. **AI Matching Engine:** Intelligently scores and recommends fests matching your tech skills.\n4. **Robust Dashboards:** Seamless fests registration and control tools for Students, Colleges, and Organizers.\n5. **AI Chatbot:** 24/7 interactive assistant to solve fests FAQs.";
-      } else {
-        botResponse = "🤔 I couldn't quite catch that. But I can help you with registration guides, team collaboration, or AI recommended fests. Try clicking one of the suggested prompts below!";
-      }
+      const data = await response.json();
+      const botResponse = data.success ? data.reply : "I'm sorry, I'm having trouble connecting to my brain right now. Please try again later!";
 
       const botMsg: Message = {
         id: Math.random().toString(),
@@ -87,8 +82,18 @@ export default function AIChatbot() {
       };
 
       setMessages((prev) => [...prev, botMsg]);
+    } catch (error) {
+      console.error("Error communicating with AI chatbot:", error);
+      const botMsg: Message = {
+        id: Math.random().toString(),
+        sender: "bot",
+        text: "I'm sorry, I encountered an error. Please check your network connection.",
+        timestamp: new Date()
+      };
+      setMessages((prev) => [...prev, botMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   return (

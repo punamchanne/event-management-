@@ -56,6 +56,15 @@ export default function EventReadMorePage() {
             fill
             className="object-contain bg-base-300/20 backdrop-blur-lg"
           />
+          {event.endDate && new Date(event.endDate) < new Date() ? (
+            <span className="absolute top-4 left-4 badge badge-error text-white font-bold text-xs uppercase py-3.5 px-4 shadow-xl z-10">
+              Registration Closed
+            </span>
+          ) : event.startDate && new Date(event.startDate) <= new Date() ? (
+            <span className="absolute top-4 left-4 badge badge-success text-white font-bold text-xs uppercase py-3.5 px-4 shadow-xl z-10">
+              Ongoing Fest
+            </span>
+          ) : null}
         </figure>
 
         <div className="card-body bg-base-300/40 backdrop-blur-lg rounded-b-xl">
@@ -142,7 +151,17 @@ export default function EventReadMorePage() {
               </span>
             </div>
             <div>
-              <Timer deadLine={new Date(event.startDate!)} />
+              {event.endDate && new Date(event.endDate) < new Date() ? (
+                <div className="flex items-center justify-center p-2 bg-error/15 text-error font-bold rounded-xl border border-error/30 text-sm">
+                  Event Expired
+                </div>
+              ) : event.startDate && new Date(event.startDate) <= new Date() ? (
+                <div className="flex items-center justify-center p-2 bg-success/15 text-success font-bold rounded-xl border border-success/30 text-sm">
+                  Fest is Live!
+                </div>
+              ) : (
+                <Timer deadLine={new Date(event.startDate!)} />
+              )}
             </div>
           </div>
         </div>

@@ -137,27 +137,66 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "You are already a member of a team in this program" }, { status: 400 });
       }
 
+      // Retrieve optional teammate emails
+      const { teammateEmails } = body;
+      const finalMembers = [studentId];
+      if (teammateEmails && teammateEmails.length > 0) {
+        for (const email of teammateEmails) {
+          const cleanEmail = email.toLowerCase().trim();
+          if (cleanEmail === "") continue;
+          
+          const teammate = await Student.findOne({ email: cleanEmail });
+          if (!teammate) {
+            return NextResponse.json({ 
+              message: `Student with email "${email}" not found. Please make sure they are registered on Opportune first.` 
+            }, { status: 400 });
+          }
+          
+          const teammateId = teammate._id.toString();
+          if (teammateId === studentId) {
+            continue; // Leader is already added
+          }
+          
+          // Verify they aren't already registered
+          const alreadyRegistered = await Team.findOne({ program: programId, members: teammateId });
+          if (alreadyRegistered) {
+            return NextResponse.json({ 
+              message: `Student "${teammate.name}" (${email}) is already registered in a team for this program.` 
+            }, { status: 400 });
+          }
+          
+          finalMembers.push(teammateId);
+        }
+      }
+
+      // Check team size limits
+      const maxLimit = program.teamSize?.max || 4;
+      if (finalMembers.length > maxLimit) {
+        return NextResponse.json({ message: `Maximum limit: ${maxLimit} members. You entered too many teammate emails.` }, { status: 400 });
+      }
+
       // Generate credentials
       const generatedCode = "TM-" + Math.floor(100000 + Math.random() * 900000);
       const generatedPassword = Math.floor(1000 + Math.random() * 9000).toString();
+      const teamStatus = finalMembers.length >= maxLimit ? "locked" : "open";
 
       const newTeam = new Team({
         program: programId,
         name: teamName,
         leader: studentId,
-        members: [studentId],
+        members: finalMembers,
         credentials: {
           teamCode: generatedCode,
           password: generatedPassword,
         },
-        status: "open",
+        status: teamStatus,
       });
 
       await newTeam.save();
 
       // Update program metrics
       program.totalRegistrations = (program.totalRegistrations || 0) + 1;
-      program.totalParticipants = (program.totalParticipants || 0) + 1;
+      program.totalParticipants = (program.totalParticipants || 0) + finalMembers.length;
       await program.save();
 
       return NextResponse.json({

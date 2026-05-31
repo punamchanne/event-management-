@@ -38,11 +38,6 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <IconCoinRupee width="22" height="22" />,
   },
   {
-    title: "Feedback & Reviews",
-    path: "/organizer/feedback",
-    icon: <IconMessageCircle width="22" height="22" />,
-  },
-  {
     title: "Smart Scheduling AI",
     path: "/organizer/scheduling",
     icon: <IconSparkles width="22" height="22" />,

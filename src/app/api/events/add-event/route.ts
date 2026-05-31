@@ -16,16 +16,6 @@ export async function POST(req: NextRequest) {
     const decodeId = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: string;
     };
-    const onGoingEvent = await Event.findOne({
-      college: decodeId.id,
-      status: "published",
-    });
-    if (onGoingEvent) {
-      return NextResponse.json(
-        { message: "You can only have one published event at a time." },
-        { status: 400 }
-      );
-    }
     event.college = decodeId.id;
     const encryptedPassword = bcrypt.hashSync(event.organizer.password, 10);
     event.organizer.password = encryptedPassword;
