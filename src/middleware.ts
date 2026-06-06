@@ -44,8 +44,15 @@ export async function middleware(req: NextRequest) {
     const user = await verifyToken(token);
     // console.log("Verified user:", user);
     if (!user) {
-      console.log("Token verification failed, redirecting to login");
-      return NextResponse.redirect(new URL("/", req.nextUrl.origin));
+      console.log("Token verification failed, clearing cookie");
+      if (isPublicPath) {
+        const response = NextResponse.next();
+        response.cookies.delete("token");
+        return response;
+      }
+      const response = NextResponse.redirect(new URL("/", req.nextUrl.origin));
+      response.cookies.delete("token");
+      return response;
     }
     const { role, isVerified } = user.data;
     if (isVerified) {
