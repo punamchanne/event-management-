@@ -35,11 +35,13 @@ export async function POST(req: NextRequest) {
     const { action, programId, teamName, teamCode, teamPassword, razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
     if (!programId) {
+      console.warn("Participation failed: Program ID is missing");
       return NextResponse.json({ message: "Program ID is required" }, { status: 400 });
     }
 
     const program = await Program.findById(programId).populate("event");
     if (!program) {
+      console.warn("Participation failed: Program not found for ID:", programId);
       return NextResponse.json({ message: "Program not found" }, { status: 404 });
     }
 
@@ -47,16 +49,18 @@ export async function POST(req: NextRequest) {
     const price = program.pricePerTeam || 0;
     if (price > 0 && (action === "individual" || action === "create-team")) {
       if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        console.warn("Participation failed: Missing payment verification parameters. order_id:", razorpay_order_id, "payment_id:", razorpay_payment_id, "signature:", razorpay_signature);
         return NextResponse.json({ message: "Payment verification details are required for this program" }, { status: 400 });
       }
 
       const bodyData = razorpay_order_id + "|" + razorpay_payment_id;
       const expectedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "eIco6L2xvGHf2H32RuKhG20G")
+        .createHmac("sha256", (process.env.RAZORPAY_KEY_SECRET || "eIco6L2xvGHf2H32RuKhG20G").trim())
         .update(bodyData.toString())
         .digest("hex");
 
       if (expectedSignature !== razorpay_signature) {
+        console.warn("Participation failed: Razorpay signature mismatch. Expected:", expectedSignature, "Received:", razorpay_signature);
         return NextResponse.json({ message: "Payment signature verification failed. Transaction unauthorized." }, { status: 400 });
       }
 
@@ -78,12 +82,14 @@ export async function POST(req: NextRequest) {
     // 1. INDIVIDUAL PARTICIPATION
     if (action === "individual") {
       if (program.type !== "individual") {
+        console.warn("Participation failed: Program requires team participation but individual was requested");
         return NextResponse.json({ message: "This program requires team participation" }, { status: 400 });
       }
 
       // Check if student is already registered for this program
       const existingTeam = await Team.findOne({ program: programId, leader: studentId });
       if (existingTeam) {
+        console.warn("Participation failed: Student is already registered (leader) for program:", programId);
         return NextResponse.json({ message: "You are already registered for this program" }, { status: 400 });
       }
 
@@ -112,28 +118,33 @@ export async function POST(req: NextRequest) {
     // 2. CREATE A TEAM
     if (action === "create-team") {
       if (program.type !== "team") {
+        console.warn("Participation failed: Program requires individual participation but team creation was requested");
         return NextResponse.json({ message: "This program requires individual participation" }, { status: 400 });
       }
 
       if (!teamName || teamName.trim() === "") {
+        console.warn("Participation failed: Team name is required");
         return NextResponse.json({ message: "Team name is required" }, { status: 400 });
       }
 
       // Check if team name is already taken (unique in DB)
       const nameExists = await Team.findOne({ name: teamName });
       if (nameExists) {
+        console.warn("Participation failed: Team name is already taken:", teamName);
         return NextResponse.json({ message: "Team name is already taken. Please choose another name." }, { status: 400 });
       }
 
       // Check if student is already leading a team in this program
       const isAlreadyLeader = await Team.findOne({ program: programId, leader: studentId });
       if (isAlreadyLeader) {
+        console.warn("Participation failed: Student is already leading a team in this program:", programId);
         return NextResponse.json({ message: "You have already created a team for this program" }, { status: 400 });
       }
 
       // Check if student is already a member of any team in this program
       const isAlreadyMember = await Team.findOne({ program: programId, members: studentId });
       if (isAlreadyMember) {
+        console.warn("Participation failed: Student is already a member of a team in this program:", programId);
         return NextResponse.json({ message: "You are already a member of a team in this program" }, { status: 400 });
       }
 

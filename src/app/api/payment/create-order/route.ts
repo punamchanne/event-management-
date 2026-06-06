@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
     }
 
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_RzISTxVyZ1l3Pr",
-      key_secret: process.env.RAZORPAY_KEY_SECRET || "eIco6L2xvGHf2H32RuKhG20G",
+      key_id: (process.env.RAZORPAY_KEY_ID || "rzp_test_RzISTxVyZ1l3Pr").trim(),
+      key_secret: (process.env.RAZORPAY_KEY_SECRET || "eIco6L2xvGHf2H32RuKhG20G").trim(),
     });
 
     const options = {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_RzISTxVyZ1l3Pr",
+      keyId: (process.env.RAZORPAY_KEY_ID || "rzp_test_RzISTxVyZ1l3Pr").trim(),
     }, { status: 200 });
 
   } catch (error: any) {
