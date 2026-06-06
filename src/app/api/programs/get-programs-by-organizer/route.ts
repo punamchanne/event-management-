@@ -1,7 +1,11 @@
+import dbConfig from "@/config/db.config";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import Event from "@/models/Event";
 import Program from "@/models/Program";
+
+dbConfig();
+const _ = Event; // Prevent tree-shaking
 
 export async function GET(req: NextRequest) {
   try {

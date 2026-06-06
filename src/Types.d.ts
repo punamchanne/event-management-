@@ -95,6 +95,7 @@ export interface Program {
   prizes?: { title?: string; amount?: number }[];
   registrationStart?: Date;
   registrationEnd?: Date;
+  eventDate?: Date | string;
   totalParticipants?: number;
   totalRegistrations?: number;
   totalTeams?: number;

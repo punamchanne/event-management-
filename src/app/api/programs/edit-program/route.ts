@@ -42,6 +42,7 @@ export async function PUT(req: NextRequest) {
       prizes: program.prizes,
       registrationStart: program.registrationStart,
       registrationEnd: program.registrationEnd,
+      eventDate: program.eventDate,
       tags: program.tags,
       manager: {
         name: program.manager.name,
@@ -60,7 +61,9 @@ export async function PUT(req: NextRequest) {
       }
     }
     
+    console.log("Saving program update eventDate:", updateData.eventDate);
     const updated = await Program.findByIdAndUpdate(program._id, updateData, { new: true });
+    console.log("Updated program from DB eventDate:", updated?.eventDate);
     return NextResponse.json({ message: "Program updated successfully", program: updated });
   } catch (error) {
     console.log("Error in edit-program", error);

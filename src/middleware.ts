@@ -63,6 +63,17 @@ export async function middleware(req: NextRequest) {
         );
       }
 
+      // Enforce role-based routing
+      const roles = ["admin", "college", "student", "organizer", "program-manager"];
+      for (const r of roles) {
+        if (pathname.startsWith(`/${r}`) && role !== r) {
+          console.log(`Unauthorized role redirect: ${role} tried accessing /${r}, redirecting to /${role}/dashboard`);
+          return NextResponse.redirect(
+            new URL(dashboardPath, req.nextUrl.origin)
+          );
+        }
+      }
+
       return NextResponse.next();
     }
 

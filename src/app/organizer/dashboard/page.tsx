@@ -1,12 +1,17 @@
 "use client";
 
 import Title from "@/components/Title";
+import Loading from "@/components/Loading";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import axios, { AxiosResponse } from "axios";
+import toast from "react-hot-toast";
+import { Event } from "@/Types";
 import {
-  IconPlus,
   IconUsersGroup,
   IconCalendarEvent,
   IconCoinRupee,
+  IconBellRinging,
 } from "@tabler/icons-react";
 import {
   BarChart,
@@ -20,60 +25,102 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { Event } from "@/Types";
-
-const programStats = [
-  { name: "Jan", programs: 2 },
-  { name: "Feb", programs: 4 },
-  { name: "Mar", programs: 6 },
-  { name: "Apr", programs: 5 },
-  { name: "May", programs: 7 },
-  { name: "Jun", programs: 9 },
-];
-
-const participantStats = [
-  { month: "Jan", participants: 80, revenue: 12000 },
-  { month: "Feb", participants: 140, revenue: 19000 },
-  { month: "Mar", participants: 200, revenue: 26000 },
-  { month: "Apr", participants: 180, revenue: 23000 },
-  { month: "May", participants: 240, revenue: 31000 },
-  { month: "Jun", participants: 300, revenue: 40000 },
-];
 
 export default function OrganizerDashboard() {
   const { user } = useAuth() as { user: Event };
-  const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sendingEmails, setSendingEmails] = useState(false);
+  const [data, setData] = useState({
+    stats: {
+      activePrograms: 0,
+      totalParticipants: 0,
+      totalRevenue: 0,
+    },
+    programStats: [] as { name: string; programs: number }[],
+    participantStats: [] as { month: string; participants: number; revenue: number }[],
+  });
 
-  const stats = [
+  const fetchAnalytics = async () => {
+    try {
+      const res = await axios.get("/api/organizer/dashboard-analytics");
+      if (res.data.success) {
+        setData({
+          stats: res.data.stats,
+          programStats: res.data.programStats,
+          participantStats: res.data.participantStats,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching organizer analytics:", error);
+      toast.error("Failed to load dashboard statistics");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const handleSendReminders = async () => {
+    setSendingEmails(true);
+    try {
+      const res = axios.post("/api/cron/reminders");
+      toast.promise(res, {
+        loading: "Scanning registrations and dispatching daily reminders...",
+        success: (response: any) => {
+          return response.data.message || "Event reminder emails sent successfully!";
+        },
+        error: (err: any) => err.response?.data?.message || "Failed to dispatch email reminders.",
+      });
+      await res;
+    } catch (error) {
+      console.error("Error sending reminders:", error);
+    } finally {
+      setSendingEmails(false);
+    }
+  };
+
+  if (loading) return <Loading />;
+
+  const statsList = [
     {
       title: "Active Programs",
-      value: "12",
+      value: data.stats.activePrograms.toString(),
       icon: IconCalendarEvent,
       color: "text-primary",
-      desc: "+2 this week",
+      desc: "Currently running/planned",
     },
     {
       title: "Total Participants",
-      value: "2,340",
+      value: data.stats.totalParticipants.toLocaleString(),
       icon: IconUsersGroup,
       color: "text-secondary",
-      desc: "+340 joined recently",
+      desc: "Registrants & team members",
     },
   ];
 
   return (
     <>
-      {/* Header */}
-      <Title
-        title="Organizer Dashboard"
-        subtitle="Manage your events, participants, and revenue at a glance"
-      />
+      {/* Header and Quick Actions */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <Title
+          title="Organizer Dashboard"
+          subtitle="Manage your events, participants, and revenue at a glance"
+        />
+        <button
+          onClick={handleSendReminders}
+          disabled={sendingEmails}
+          className="btn btn-outline btn-primary rounded-xl flex items-center gap-2 font-bold transition hover:scale-[1.02] shadow no-print"
+        >
+          <IconBellRinging size={18} className="animate-bounce" />
+          Send 1-Day Event Reminders
+        </button>
+      </div>
 
       {/* Stats Section */}
       <div className="stats shadow w-full bg-base-200">
-        {stats.map((stat, index) => (
+        {statsList.map((stat, index) => (
           <div key={index} className="stat">
             <div className="stat-figure text-3xl">
               <stat.icon className={stat.color} size={24} />
@@ -87,14 +134,14 @@ export default function OrganizerDashboard() {
         <div className="stat">
           <div className="stat-figure text-success">
             <div className="avatar avatar-online">
-              <div className="w-16 rounded-full">
-                <img src={user.coverImage} alt="Event Banner" />
+              <div className="w-16 rounded-full border border-base-300">
+                <img src={user?.coverImage || "/placeholder.jpg"} alt="Event Banner" />
               </div>
             </div>
           </div>
-          <div className="stat-value text-success">₹1.8L</div>
-          <div className="stat-title">Total Revenue</div>
-          <div className="stat-desc text-success">+8% vs last month</div>
+          <div className="stat-value text-success">₹{data.stats.totalRevenue.toLocaleString("en-IN")}</div>
+          <div className="stat-title font-bold">Total Revenue</div>
+          <div className="stat-desc text-success">Ticket sales collections</div>
         </div>
       </div>
 
@@ -102,40 +149,40 @@ export default function OrganizerDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Bar Chart - Programs */}
         <div className="bg-base-200 p-6 rounded-box shadow-md border border-base-300">
-          <h2 className="text-xl font-semibold mb-4">Programs Organized</h2>
+          <h2 className="text-xl font-bold font-outfit uppercase mb-4 text-primary tracking-wide">Programs Organized</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={programStats}>
-              <XAxis dataKey="name" stroke="#888" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="programs" fill="#3ABEF9" radius={[6, 6, 0, 0]} />
+            <BarChart data={data.programStats}>
+              <XAxis dataKey="name" stroke="currentColor" opacity={0.6} />
+              <YAxis stroke="currentColor" opacity={0.6} />
+              <Tooltip contentStyle={{ background: "#1f2937", border: "none", borderRadius: "8px", color: "#fff" }} />
+              <Bar dataKey="programs" fill="var(--p, #ff8f00)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Line Chart - Participants vs Revenue */}
         <div className="bg-base-200 p-6 rounded-box shadow-md border border-base-300">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-xl font-bold font-outfit uppercase mb-4 text-secondary tracking-wide font-outfit">
             Participants vs Revenue
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={participantStats}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
+            <LineChart data={data.participantStats}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+              <XAxis dataKey="month" stroke="currentColor" opacity={0.6} />
+              <YAxis stroke="currentColor" opacity={0.6} />
+              <Tooltip contentStyle={{ background: "#1f2937", border: "none", borderRadius: "8px", color: "#fff" }} />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="participants"
-                stroke="#FFBB28"
+                stroke="var(--wa, #FFBB28)"
                 strokeWidth={3}
                 name="Participants"
               />
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#00C49F"
+                stroke="var(--su, #00C49F)"
                 strokeWidth={3}
                 name="Revenue (₹)"
               />

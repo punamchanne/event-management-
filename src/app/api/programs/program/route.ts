@@ -12,13 +12,15 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const slug = searchParams.get("slug");
-    if (!slug) {
+    const id = searchParams.get("id");
+    if (!slug && !id) {
       return NextResponse.json(
-        { message: "Slug is required" },
+        { message: "Slug or ID is required" },
         { status: 400 }
       );
     }
-    const program = await Program.findOne({ slug })
+    const query = id ? { _id: id } : { slug };
+    const program = await Program.findOne(query)
       .populate("event")
       .populate({
         path: "event",

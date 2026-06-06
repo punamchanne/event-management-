@@ -5,6 +5,8 @@ import {
   IconTrophy,
   IconUser,
   IconSettings,
+  IconMapPin,
+  IconMessage,
 } from "@tabler/icons-react";
 
 export const SIDENAV_ITEMS: SideNavItem[] = [
@@ -24,6 +26,16 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <IconTrophy width="22" height="22" />,
   },
   {
+    title: "Location Finder",
+    path: "/student/location-finder",
+    icon: <IconMapPin width="22" height="22" />,
+  },
+  {
+    title: "Messages",
+    path: "/student/messages",
+    icon: <IconMessage width="22" height="22" />,
+  },
+  {
     title: "Profile",
     path: "/student/profile",
     icon: <IconUser width="22" height="22" />,
@@ -34,3 +46,4 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     icon: <IconSettings width="22" height="22" />,
   },
 ];
+

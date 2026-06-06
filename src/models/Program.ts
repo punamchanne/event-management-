@@ -59,6 +59,7 @@ const ProgramSchema = new Schema(
     prizes: [{ title: String, amount: Number }],
     registrationStart: Date,
     registrationEnd: Date,
+    eventDate: Date,
     totalRegistrations: { type: Number, default: 0 }, // denormalized
     totalParticipants: { type: Number, default: 0 },
     leaderBoardCache: [

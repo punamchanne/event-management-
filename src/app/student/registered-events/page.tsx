@@ -22,7 +22,8 @@ import {
   IconTicket,
   IconPrinter,
   IconQrcode,
-  IconBarcode
+  IconBarcode,
+  IconMessage
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -55,8 +56,11 @@ interface Registration {
     programType: string;
     roundsCount: number;
     pricePerTeam: number;
+    status: string;
+    eventDate?: string;
     event: {
       title: string;
+      endDate?: string;
       college: {
         name: string;
       };
@@ -370,20 +374,49 @@ export default function RegisteredEventsPage() {
                   </div>
                   
                   {/* Action buttons grid */}
-                  <div className="px-5 pt-1.5 no-print grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setSelectedTicket(reg)}
-                      className="btn btn-outline btn-primary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-primary hover:text-white font-outfit"
+                  <div className="px-5 pt-1.5 no-print flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setSelectedTicket(reg)}
+                        className="btn btn-outline btn-primary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-primary hover:text-white font-outfit"
+                      >
+                        <IconTicket size={14} />
+                        Pass
+                      </button>
+                      <button
+                        onClick={() => setFeedbackProgram({ id: reg.program?._id, title: reg.program?.title })}
+                        className="btn btn-outline btn-secondary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-secondary hover:text-white font-outfit"
+                      >
+                        ★ Feedback
+                      </button>
+                    </div>
+
+                    <Link
+                      href={`/student/messages?programId=${reg.program?._id}`}
+                      className="btn btn-outline btn-accent btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-accent hover:text-white font-outfit"
                     >
-                      <IconTicket size={14} />
-                      Pass
-                    </button>
-                    <button
-                      onClick={() => setFeedbackProgram({ id: reg.program?._id, title: reg.program?.title })}
-                      className="btn btn-outline btn-secondary btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold transition hover:scale-[1.02] hover:bg-secondary hover:text-white font-outfit"
-                    >
-                      ★ Feedback
-                    </button>
+                      <IconMessage size={13} />
+                      Chat with Coordinator
+                    </Link>
+
+                    {(() => {
+                      const isFinished = reg.program?.status === "completed" || 
+                                         (reg.program?.eventDate && new Date(reg.program.eventDate).getTime() > 0
+                                           ? new Date(new Date(reg.program.eventDate).getTime() + 24 * 60 * 60 * 1000) <= new Date()
+                                           : (reg.program?.event?.endDate && 
+                                              new Date(reg.program.event.endDate).getTime() > 0 && 
+                                              new Date(new Date(reg.program.event.endDate).getTime() + 24 * 60 * 60 * 1000) <= new Date()));
+                      return isFinished ? (
+                        <Link
+                          href={`/student/registered-events/certificate/${reg._id}`}
+                          target="_blank"
+                          className="btn btn-xs w-full rounded-xl flex items-center justify-center gap-1 font-bold bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-none shadow hover:from-amber-600 hover:to-yellow-700 hover:scale-[1.02] transition font-outfit"
+                        >
+                          <IconPrinter size={14} />
+                          Claim Certificate
+                        </Link>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import {
   IconCircleChevronRight,
   IconGraph,
@@ -9,10 +10,87 @@ import {
   IconTrophy,
   IconUser,
   IconUsers,
+  IconCalendar,
+  IconMapPin,
+  IconArrowRight,
+  IconBuilding,
 } from "@tabler/icons-react";
 import CountUp from "react-countup";
+import axios from "axios";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+interface EventItem {
+  _id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  coverImage?: string;
+  startDate?: string;
+  endDate?: string;
+  programsCount?: number;
+  tags?: string[];
+  college: {
+    name: string;
+    address?: {
+      street?: string;
+      taluka?: string;
+      state?: string;
+    };
+  };
+}
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [ongoingEvents, setOngoingEvents] = useState<EventItem[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await axios.get("/api/events/ongoing");
+        if (res.data && res.data.events) {
+          setOngoingEvents(res.data.events);
+        }
+      } catch (error) {
+        console.error("Error fetching homepage events:", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "TBD";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const handleParticipateClick = (event: EventItem) => {
+    if (!user) {
+      toast("Please register your student account first to participate in this event!", {
+        icon: "🎓",
+        duration: 4000,
+      });
+      // Redirect to student register flow
+      router.push("/register");
+    } else {
+      // @ts-ignore
+      if (user.role === "student") {
+        router.push(`/student/ongoing-events/${event.slug}`);
+      } else {
+        // @ts-ignore
+        toast.error(`Please login as a student to participate. Current role: ${user.role}`);
+      }
+    }
+  };
+
   return (
     <div className="mx-auto Orbitron">
       {/* Hero Section */}
@@ -33,7 +111,7 @@ export default function LandingPage() {
               <strong>Join us today!</strong>
             </p>
             <a
-              href="/student/ongoing-events"
+              href={user ? "/student/dashboard" : "#active-fests"}
               className="btn btn-primary text-base font-medium text-center rounded-lg mr-4"
             >
               Explore Events
@@ -49,6 +127,102 @@ export default function LandingPage() {
           <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
             <img src="/background-image.png" alt="hero image" />
           </div>
+        </div>
+      </section>
+
+      {/* NEW: Active & Upcoming Festivals Section */}
+      <section className="w-full py-20 px-6 md:px-16 bg-base-100 border-b border-base-300" id="active-fests">
+        <div className="max-w-6xl mx-auto space-y-4">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
+            <h2 className="text-4xl font-bold text-primary font-outfit uppercase tracking-wide">
+              Active & Upcoming Festivals
+            </h2>
+            <p className="text-sm text-base-content/65 font-medium leading-relaxed font-sans">
+              Explore dynamic events hosted across various premier college campuses. Select an event to register and claim your ticket!
+            </p>
+          </div>
+
+          {loadingEvents ? (
+            <div className="flex justify-center items-center py-12">
+              <span className="loading loading-ring loading-lg text-primary"></span>
+            </div>
+          ) : ongoingEvents.length === 0 ? (
+            <div className="text-center p-12 bg-base-200 rounded-2xl border border-dashed border-base-300">
+              <p className="text-base-content/60 italic">No active fests or events found at the moment. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+              {ongoingEvents.map((event) => (
+                <div
+                  key={event._id}
+                  className="card bg-base-200 border border-base-300 shadow-md hover:shadow-xl hover:scale-[1.01] transition-all duration-300 overflow-hidden rounded-2xl flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Cover Photo */}
+                    <figure className="relative h-48 w-full overflow-hidden bg-base-300/40">
+                      <img
+                        src={event.coverImage || "/placeholder.jpg"}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-3 right-3 badge badge-primary font-extrabold text-[10px] py-2.5 px-3 uppercase tracking-wider">
+                        {event.programsCount || 0} Programs
+                      </span>
+                    </figure>
+
+                    {/* Card Body */}
+                    <div className="p-5 space-y-3">
+                      <div>
+                        <h3 className="text-lg font-black text-base-content font-outfit line-clamp-1">
+                          {event.title}
+                        </h3>
+                        <p className="text-xs text-primary font-bold flex items-center gap-1.5 mt-0.5">
+                          <IconBuilding size={14} />
+                          {event.college.name}
+                        </p>
+                      </div>
+
+                      <p className="text-xs text-base-content/70 line-clamp-3 font-sans leading-relaxed">
+                        {event.description || "No description provided."}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {event.tags?.slice(0, 3).map((tag, idx) => (
+                          <span key={idx} className="badge badge-sm badge-outline text-[9px] capitalize">
+                            {tag.replace(/_/g, " ")}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Footer Actions */}
+                  <div className="p-5 pt-0 space-y-4">
+                    <hr className="border-base-300" />
+                    
+                    <div className="flex justify-between items-center text-[10px] text-base-content/60 font-semibold">
+                      <span className="flex items-center gap-1">
+                        <IconCalendar size={13} className="text-secondary" />
+                        {formatDate(event.startDate)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <IconMapPin size={13} className="text-secondary" />
+                        {event.college.address?.taluka || "Campus"}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleParticipateClick(event)}
+                      className="btn btn-primary btn-block btn-sm rounded-xl text-white font-bold flex items-center justify-center gap-1 transition"
+                    >
+                      Participate Now
+                      <IconArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

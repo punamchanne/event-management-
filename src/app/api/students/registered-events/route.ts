@@ -7,6 +7,7 @@ import Event from "@/models/Event";
 import College from "@/models/College";
 
 dbConfig();
+const _unused = [Program, Event, College]; // Prevent tree-shaking
 
 export async function GET(req: NextRequest) {
   try {

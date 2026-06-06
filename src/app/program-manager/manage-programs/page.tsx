@@ -60,6 +60,7 @@ export default function ManageProgramPage() {
     prizes: [] as { title: string; amount: number }[],
     registrationStart: new Date(),
     registrationEnd: new Date(),
+    eventDate: new Date(),
   });
   const [image, setImage] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,9 +113,8 @@ export default function ManageProgramPage() {
   const fetchPrograms = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/programs/get-programs-by-organizer");
-      const data = await response.json();
-      setPrograms(data.programs);
+      const response = await axios.get("/api/programs/get-programs-by-organizer?t=" + Date.now());
+      setPrograms(response.data.programs);
     } catch (error) {
       console.log(error);
     } finally {
@@ -183,6 +183,8 @@ export default function ManageProgramPage() {
       return toast.error("Manager phone is required"), false;
     if (!p.coverImage)
       return toast.error("Program cover image is required"), false;
+    if (!p.eventDate)
+      return toast.error("Event Date is required"), false;
       
     const isPasswordFilled = p.manager.password || p.manager.confirmPassword;
     if (!editingProgramId || isPasswordFilled) {
@@ -248,6 +250,7 @@ export default function ManageProgramPage() {
       prizes: (prog.prizes || []) as any,
       registrationStart: new Date(prog.registrationStart || new Date()),
       registrationEnd: new Date(prog.registrationEnd || new Date()),
+      eventDate: new Date(prog.eventDate || new Date()),
     });
     (document.getElementById("add-program-modal") as HTMLDialogElement).showModal();
   };
@@ -292,6 +295,7 @@ export default function ManageProgramPage() {
       prizes: [],
       registrationStart: new Date(),
       registrationEnd: new Date(),
+      eventDate: new Date(),
     });
     (document.getElementById("add-program-modal") as HTMLDialogElement).showModal();
   };
@@ -876,7 +880,7 @@ export default function ManageProgramPage() {
                 }
               />
             </fieldset>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               {/* Registration Start */}
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">
@@ -909,6 +913,27 @@ export default function ManageProgramPage() {
                     setNewProgram({
                       ...newProgram,
                       registrationEnd: new Date(e.target.value),
+                    })
+                  }
+                />
+              </fieldset>
+              {/* Event Date */}
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">
+                  Event / Competition Date <span className="text-error">*</span>
+                </legend>
+                <input
+                  type="date"
+                  className="input input-bordered w-full"
+                  value={
+                    newProgram.eventDate
+                      ? newProgram.eventDate.toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setNewProgram({
+                      ...newProgram,
+                      eventDate: new Date(e.target.value),
                     })
                   }
                 />

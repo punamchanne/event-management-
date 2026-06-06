@@ -6,6 +6,7 @@ import {
   IconTrophy,
   IconChartBar,
   IconSettings,
+  IconMessage,
 } from "@tabler/icons-react";
 
 export const SIDENAV_ITEMS: SideNavItem[] = [
@@ -33,6 +34,11 @@ export const SIDENAV_ITEMS: SideNavItem[] = [
     title: "Analytics",
     path: "/program-manager/analytics",
     icon: <IconChartBar width="22" height="22" />,
+  },
+  {
+    title: "Messages",
+    path: "/program-manager/messages",
+    icon: <IconMessage width="22" height="22" />,
   },
   {
     title: "Settings",
