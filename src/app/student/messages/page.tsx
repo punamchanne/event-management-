@@ -202,7 +202,7 @@ function ChatContent() {
   if (loadingConv) return <Loading />;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto poppins">
+    <div className="space-y-6 max-w-6xl mx-auto poppins px-4 md:px-0">
       <Title
         title="Live Coordinator Chat"
         subtitle="Chat directly with college event managers regarding room venues, schedules, or rules."

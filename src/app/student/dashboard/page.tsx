@@ -115,7 +115,7 @@ export default function StudentDashboard() {
   if (loading) return <Loading />;
 
   return (
-    <div className="space-y-8 poppins max-w-6xl mx-auto pb-16">
+    <div className="space-y-8 poppins max-w-6xl mx-auto pb-16 px-4 md:px-0">
       <Title
         title="Student Dashboard"
         subtitle="Overview of your opportunities, team collaborations, and AI recommendations."

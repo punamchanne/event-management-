@@ -97,7 +97,7 @@ export default function StudentProfilePage() {
   if (loading || !profile) return <Loading />;
 
   return (
-    <div className="poppins space-y-6 pb-12 max-w-4xl mx-auto">
+    <div className="poppins space-y-6 pb-12 max-w-4xl mx-auto px-4 md:px-0">
       <Title
         title="Student Profile"
         subtitle="Manage your personal resume details, skills tags, and fest interests."

@@ -165,7 +165,7 @@ export default function RegisteredEventsPage() {
   if (loading) return <Loading />;
 
   return (
-    <div className="poppins max-w-6xl mx-auto pb-16">
+    <div className="poppins max-w-6xl mx-auto pb-16 px-4 md:px-0">
       {/* Title Header */}
       <Title
         title="Registered Events"

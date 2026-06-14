@@ -182,7 +182,7 @@ const SideNav = ({
           <div>
             {" "}
             <main
-              className={`${className} overflow-y-auto h-[calc(100vh-5.3rem)] bg-base-100 p-10 text-base-content`}
+              className={`${className} overflow-y-auto h-[calc(100vh-5.3rem)] bg-base-100 p-4 sm:p-6 lg:p-10 text-base-content`}
             >
               {children}
             </main>

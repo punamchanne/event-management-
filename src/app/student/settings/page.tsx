@@ -63,7 +63,7 @@ export default function StudentSettingsPage() {
   if (loading || !settings) return <Loading />;
 
   return (
-    <div className="poppins space-y-6 pb-12 max-w-xl mx-auto">
+    <div className="poppins space-y-6 pb-12 max-w-xl mx-auto px-4 md:px-0">
       <Title
         title="Student Settings"
         subtitle="Manage email alert parameters, system pushes, and privacy preferences."

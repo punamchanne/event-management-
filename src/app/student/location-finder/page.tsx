@@ -193,7 +193,7 @@ export default function LocationFinderPage() {
     : null;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 md:px-0">
       <Title
         title="Event Location Finder"
         subtitle="Find venues, view walking routes, and navigate to ongoing events"
