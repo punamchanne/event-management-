@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const verifyToken = async (token: string) => {
+const verifyToken = async (token: string, origin: string) => {
   try {
     const response = await fetch(
-      `${process.env.BASE_URL}/api/auth/middleware-verify-token`,
+      `${origin}/api/auth/middleware-verify-token`,
       {
         method: "POST",
         headers: {
@@ -41,7 +41,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (isLoggedIn) {
-    const user = await verifyToken(token);
+    const user = await verifyToken(token, req.nextUrl.origin);
     // console.log("Verified user:", user);
     if (!user) {
       console.log("Token verification failed, clearing cookie");
