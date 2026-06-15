@@ -74,7 +74,6 @@ export async function POST(req: NextRequest) {
           email: student.email,
           role: "student",
           name: student.name,
-          profileImage: student.profileImage,
           isVerified: student.isVerified,
         };
         return createTokenAndResponse(data, "/user/dashboard");
@@ -104,7 +103,6 @@ export async function POST(req: NextRequest) {
           email: college.admin.email,
           role: "college",
           name: college.admin.name,
-          profileImage: college.profileImage,
           isVerified: true,
         };
         return createTokenAndResponse(data, "/college/dashboard");
@@ -132,7 +130,6 @@ export async function POST(req: NextRequest) {
           email: event.organizer.email,
           role: "organizer",
           name: event.organizer.name,
-          profileImage: event.organizer.profileImage,
           isVerified: true,
         };
         return createTokenAndResponse(data, "/organizer/dashboard");
@@ -160,7 +157,6 @@ export async function POST(req: NextRequest) {
           email: program.manager.email,
           role: "program-manager",
           name: program.manager.name,
-          profileImage: program.coverImage,
           isVerified: true,
         };
         return createTokenAndResponse(data, "/program-manager/dashboard");
@@ -188,7 +184,6 @@ export async function POST(req: NextRequest) {
           email: student.email,
           role: "student",
           name: student.name,
-          profileImage: student.profileImage,
           isVerified: true,
         };
         return createTokenAndResponse(data, "/student/dashboard");
