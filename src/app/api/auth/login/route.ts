@@ -18,8 +18,9 @@ const createTokenAndResponse = (data: object, route: string) => {
   });
   response.cookies.set("token", token, {
     httpOnly: true,
+    secure: true,
     maxAge: 60 * 60 * 24 * 7,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
   });
   return response;
