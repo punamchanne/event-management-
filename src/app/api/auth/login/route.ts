@@ -20,6 +20,7 @@ const createTokenAndResponse = (data: object, route: string) => {
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 7,
     sameSite: "strict",
+    path: "/",
   });
   return response;
 };

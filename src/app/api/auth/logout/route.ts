@@ -5,6 +5,6 @@ export async function GET() {
     message: "Logged out successfully",
     success: true,
   });
-  response.cookies.set("token", "", { maxAge: -1 });
+  response.cookies.set("token", "", { maxAge: -1, path: "/" });
   return response;
 }
