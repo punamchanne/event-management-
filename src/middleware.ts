@@ -33,6 +33,7 @@ export async function middleware(req: NextRequest) {
   const isPublicPath = ["/"].includes(pathname);
 
   const token = req.cookies.get("token")?.value || "";
+  console.log("All cookies received in middleware:", req.cookies.getAll());
   const isLoggedIn = !!token;
 
   if (!isLoggedIn && !isPublicPath) {
